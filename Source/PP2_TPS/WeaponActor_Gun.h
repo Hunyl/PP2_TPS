@@ -51,10 +51,10 @@ public:
 
 	FFireDelaySequence FireDelaySequence;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	EWeaponType WeaponType;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	EFireModeType FireModeType;
 
 	// Components

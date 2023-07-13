@@ -41,6 +41,7 @@ void AEnemyCharacter::TakeDamage(float Damage)
 
 	if (HitPoint <= 0.0f)
 	{
+		HitPoint = -1.0f;
 		OnDefeated();
 	}
 }

@@ -3,6 +3,8 @@
 
 #include "EnemyCharacter_PracticeTarget.h"
 
+#include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 AEnemyCharacter_PracticeTarget::AEnemyCharacter_PracticeTarget()
@@ -10,14 +12,20 @@ AEnemyCharacter_PracticeTarget::AEnemyCharacter_PracticeTarget()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	Mesh_Main = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh_Main"));
+	Collision_Main = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision_Main"));
 
 	Mesh_Main->SetupAttachment(RootComponent);
+	Collision_Main->SetupAttachment(Mesh_Main);
 
 	ActivatedRotation = FRotator(-90.0f, 0.0f, 0.0f);
 	DeactivatedRotation = FRotator(0.0f, 0.0f, 0.0f);
 
 	ActivationLerpValue = 0.0f;
 	IsActive = false;
+
+	GetMesh()->SetEnableGravity(false);
+	GetCapsuleComponent()->SetEnableGravity(false);
+	GetCapsuleComponent()->InitCapsuleSize(0.0f, 0.0f);
 }
 
 void AEnemyCharacter_PracticeTarget::BeginPlay()

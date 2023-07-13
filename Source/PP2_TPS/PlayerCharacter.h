@@ -9,6 +9,7 @@
 
 #include "PlayerCharacter.generated.h"
 
+// Forward Declarations
 class UCameraComponent;
 class USpringArmComponent;
 class AWeaponActor;
@@ -22,69 +23,68 @@ class PP2_TPS_API APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
+	
 	APlayerCharacter();
 
 protected:
-	// Called when the game starts or when spawned
+	
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
+	
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	// Basic Components
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Basic Components")
 	UCameraComponent* MainCamera;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Basic Components")
 	USpringArmComponent* SpringArm_MainCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Basic Components")
 	AWeaponActor* Weapon;
 
 	// Animations
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Animation - Montages")
 	TMap<FName, UAnimMontage*> Dictionary_AnimMtg;
 
 	// Inputs
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Inputs")
 	UInputMappingContext* IMC_Player;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Inputs")
 	UInputAction* IA_Move_Player;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Inputs")
 	UInputAction* IA_Look_Player;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Inputs")
 	UInputAction* IA_Aim_Player;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Inputs")
 	UInputAction* IA_Fire_Player;
 
 	// Vectors
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Property - Vectors")
 	FVector OriginCameraOffset;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Property - Vectors")
 	FVector AimCameraOffset;
 
 	// Values
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Property - Values")
 	float OriginCameraArmLength;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Property - Values")
 	float AimCameraArmLength;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	float MoveSpeed_Default;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	float MoveSpeed_Aim;
 
 	float MoveSpeed;
@@ -100,7 +100,7 @@ public:
 	bool IsFiring;
 
 public:
-
+	// Unreal Functions
 	UFUNCTION(BlueprintCallable)
 	FTransform GetSocketLocation(FName SocketName);
 

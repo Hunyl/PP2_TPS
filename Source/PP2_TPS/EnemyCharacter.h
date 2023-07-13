@@ -31,7 +31,7 @@ public:
 
 public:
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	float HitPoint_Max;
 
 protected:

@@ -7,16 +7,14 @@
 
 void UWeaponAnimNotify_Fire::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp->IsValidLowLevel())
+	if (!IsValid(MeshComp))
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Mesh Available"));
-
 	if (AWeaponActor_Gun* Weapon = Cast<AWeaponActor_Gun>(MeshComp->GetOwner()))
 	{
-		if (Weapon->Actor_Case->IsValidLowLevel())
+		if (IsValid(Weapon->Actor_Case))
 		{
 			FActorSpawnParameters SpawnParams;
 

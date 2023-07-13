@@ -11,6 +11,7 @@
  */
 
 class UStaticMeshComponent;
+class UBoxComponent;
 
 UCLASS()
 class PP2_TPS_API AEnemyCharacter_PracticeTarget : public AEnemyCharacter
@@ -30,9 +31,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-
-	UPROPERTY(EditAnywhere, Category = "Basic Component")
+	// Basic Components
+	UPROPERTY(EditAnywhere, Category = "Basic Components")
 	UStaticMeshComponent* Mesh_Main;
+
+	UPROPERTY(VisibleAnywhere, Category = "Basic Components")
+	UBoxComponent* Collision_Main;
 
 public:
 

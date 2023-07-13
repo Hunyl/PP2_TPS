@@ -26,7 +26,7 @@ APlayerCharacter::APlayerCharacter()
 	SpringArm_MainCamera = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm_MainCamera"));
 
 	OriginCameraOffset = FVector(0.0f, 30.0f, 60.0f);
-	AimCameraOffset = FVector(0.0f, 75.0f, 55.0f);
+	AimCameraOffset = FVector(0.0f, 60.0f, 55.0f);
 
 	OriginCameraArmLength = 125.0f;
 	AimCameraArmLength = 100.0f;
@@ -69,13 +69,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (Weapon != nullptr)
+	if (IsValid(Weapon))
 	{
 		IsHoldingWeapon = true;
 	}
 	else
 	{
-		IsHoldingWeapon = false;
+		IsHoldingWeapon = true;
 	}
 }
 
@@ -98,9 +98,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 FTransform APlayerCharacter::GetSocketLocation(FName SocketName)
 {
-	if (Weapon->IsValidLowLevel())
+	if (IsValid(Weapon))
 	{
-		if (Weapon->Mesh->IsValidLowLevel())
+		if (IsValid(Weapon->Mesh))
 		{
 			return Weapon->Mesh->GetSocketTransform(SocketName, ERelativeTransformSpace::RTS_World);
 		}
@@ -178,21 +178,19 @@ void APlayerCharacter::Fire(const FInputActionValue& Value)
 		return;
 	}
 
-	if (!Weapon->IsValidLowLevel())
+	if (!IsValid(Weapon))
 	{
 		UE_LOG(LogTemp, Log, TEXT("No Weapon!"));
 		return;
 	}
 
-	// UE_LOG(LogTemp, Log, TEXT("Firing"));
-
-	if (Weapon->IsValidLowLevel())
+	if (IsValid(Weapon))
 	{
 		Weapon->Attack(IsFiring);
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance->IsValidLowLevel())
+	if (!IsValid(AnimInstance))
 	{
 		return;
 	}
@@ -227,7 +225,7 @@ void APlayerCharacter::CeaseFire(const FInputActionValue& Value)
 		return;
 	}
 
-	if (!Weapon->IsValidLowLevel())
+	if (!IsValid(Weapon))
 	{
 		UE_LOG(LogTemp, Log, TEXT("No Weapon!"));
 		return;
@@ -235,15 +233,9 @@ void APlayerCharacter::CeaseFire(const FInputActionValue& Value)
 
 	UE_LOG(LogTemp, Log, TEXT("Completed"));
 
-	if (Weapon->IsValidLowLevel())
+	if (IsValid(Weapon))
 	{
 		Weapon->Attack(IsFiring);
 	}
-
-	/*UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance->IsValidLowLevel())
-	{
-		AnimInstance->Montage_Play(AnimMtg_Fire);
-	}*/
 }
 
