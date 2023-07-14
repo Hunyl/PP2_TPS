@@ -50,7 +50,10 @@ void AEnemyCharacter_PracticeTarget::Tick(float DeltaTime)
 	MedianRotation = FMath::Lerp(DeactivatedRotation, ActivatedRotation, ActivationLerpValue);
 	FQuat MedianQuat = FQuat(MedianRotation);
 
-	Mesh_Main->SetRelativeRotation(MedianQuat);
+	if (IsValid(Mesh_Main))
+	{
+		Mesh_Main->SetRelativeRotation(MedianQuat);
+	}
 }
 
 void AEnemyCharacter_PracticeTarget::TakeDamage(float Damage)

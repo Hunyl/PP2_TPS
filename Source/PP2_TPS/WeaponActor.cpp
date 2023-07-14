@@ -41,22 +41,33 @@ void AWeaponActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, 
 {
 	UE_LOG(LogTemp, Log, TEXT("Begin Overlap..."));
 
-	if (APlayerCharacter* Player = CastChecked<APlayerCharacter>(OtherActor))
+	TWeakObjectPtr<APlayerCharacter> Player = CastChecked<APlayerCharacter>(OtherActor);
+	if (!Player.IsValid())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Acquired a Weapon"));
-
-		USkeletalMeshComponent* PlayerMesh = Player->GetMesh();
-		if (PlayerMesh->IsValidLowLevel())
-		{
-			EAttachmentRule AttachRule = EAttachmentRule::SnapToTarget;
-			FAttachmentTransformRules AttachTransFormRules = FAttachmentTransformRules(AttachRule, false);
-			this->AttachToComponent(PlayerMesh, AttachTransFormRules, TEXT("socket_weapon"));
-
-			Collision->SetCollisionProfileName(TEXT("NoCollision"));
-
-			Player->Weapon = this;
-		}
+		return;
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Acquired a Weapon"));
+
+	USkeletalMeshComponent* PlayerMesh = Player->GetMesh();
+	if (!IsValid(PlayerMesh))
+	{
+		return;
+	}
+
+	EAttachmentRule AttachRule = EAttachmentRule::SnapToTarget;
+	FAttachmentTransformRules AttachTransFormRules = FAttachmentTransformRules(AttachRule, false);
+	this->AttachToComponent(PlayerMesh, AttachTransFormRules, TEXT("socket_weapon"));
+
+	Collision->SetCollisionProfileName(TEXT("NoCollision"));
+
+	TWeakObjectPtr<AWeaponActor> PlayerWeapon_Current = Player->Weapon;
+	if (PlayerWeapon_Current.IsValid())
+	{
+		PlayerWeapon_Current->Destroy();
+	}
+
+	Player->Weapon = this;
 }
 
 void AWeaponActor::Attack(bool IsHolding)

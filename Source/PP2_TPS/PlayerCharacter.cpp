@@ -16,6 +16,9 @@
 #include "../../../../../Unreal Engine 5.1/UE_5.1/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../../../../../Unreal Engine 5.1/UE_5.1/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/InputMappingContext.h"
 
+static const FName AnimMtg_Fire_Rifle(TEXT("AnimMtg_Fire_Rifle"));
+static const FName AnimMtg_Fire_Shotgun(TEXT("AnimMtg_Fire_Shotgun"));
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -98,15 +101,17 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 FTransform APlayerCharacter::GetSocketLocation(FName SocketName)
 {
-	if (IsValid(Weapon))
+	if (!IsValid(Weapon))
 	{
-		if (IsValid(Weapon->Mesh))
-		{
-			return Weapon->Mesh->GetSocketTransform(SocketName, ERelativeTransformSpace::RTS_World);
-		}
+		return FTransform();
 	}
 
-	return FTransform();
+	if (!IsValid(Weapon->Mesh))
+	{
+		return FTransform();
+	}
+
+	return Weapon->Mesh->GetSocketTransform(SocketName, ERelativeTransformSpace::RTS_World);
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -150,9 +155,16 @@ void APlayerCharacter::AimOn(const FInputActionValue& Value)
 	float MedianLength = FMath::Lerp(OriginCameraArmLength, AimCameraArmLength, AimLerpValue);
 	float MedianFOV = FMath::Lerp(90.0f, 75.0f, AimLerpValue);
 
-	SpringArm_MainCamera->SocketOffset = MedianOffset;
-	SpringArm_MainCamera->TargetArmLength = MedianLength;
-	MainCamera->FieldOfView = MedianFOV;
+	if (IsValid(SpringArm_MainCamera))
+	{
+		SpringArm_MainCamera->SocketOffset = MedianOffset;
+		SpringArm_MainCamera->TargetArmLength = MedianLength;
+	}
+	
+	if (IsValid(MainCamera))
+	{
+		MainCamera->FieldOfView = MedianFOV;
+	}
 }
 
 void APlayerCharacter::AimOff(const FInputActionValue& Value)
@@ -163,9 +175,16 @@ void APlayerCharacter::AimOff(const FInputActionValue& Value)
 
 	IsAiming = false;
 
-	SpringArm_MainCamera->SocketOffset = OriginCameraOffset;
-	SpringArm_MainCamera->TargetArmLength = OriginCameraArmLength;
-	MainCamera->FieldOfView = 90.0f;
+	if (IsValid(SpringArm_MainCamera))
+	{
+		SpringArm_MainCamera->SocketOffset = OriginCameraOffset;
+		SpringArm_MainCamera->TargetArmLength = OriginCameraArmLength;
+	}
+
+	if (IsValid(MainCamera))
+	{
+		MainCamera->FieldOfView = 90.0f;
+	}
 }
 
 void APlayerCharacter::Fire(const FInputActionValue& Value)
@@ -195,24 +214,23 @@ void APlayerCharacter::Fire(const FInputActionValue& Value)
 		return;
 	}
 
-	if (AWeaponActor_Gun* Weapon_Gun = CastChecked<AWeaponActor_Gun>(Weapon))
+	AWeaponActor_Gun* Weapon_Gun = CastChecked<AWeaponActor_Gun>(Weapon);
+	if (!IsValid(Weapon_Gun))
 	{
-		if (Weapon_Gun->WeaponType == EWeaponType::Rifle)
-		{
-			if (UAnimMontage* Fire_Rifle = Dictionary_AnimMtg.FindChecked(TEXT("AnimMtg_Fire_Rifle")))
-			{
-				AnimInstance->Montage_Play(Fire_Rifle, 1.0f);
-			}
-		}
-		else if (Weapon_Gun->WeaponType == EWeaponType::Shotgun)
-		{
-			if (UAnimMontage* Fire_Shotgun = Dictionary_AnimMtg.FindChecked(TEXT("AnimMtg_Fire_Shotgun")))
-			{
-				AnimInstance->Montage_Play(Fire_Shotgun, 1.0f);
-			}
-		}
+		return;
 	}
-	
+
+	bool Checked_Rifle = Weapon_Gun->WeaponType == EWeaponType::Rifle && Dictionary_AnimMtg.Contains(AnimMtg_Fire_Rifle);
+	bool Checked_Shotgun = Weapon_Gun->WeaponType == EWeaponType::Shotgun && Dictionary_AnimMtg.Contains(AnimMtg_Fire_Shotgun);
+
+	if (Checked_Rifle)
+	{
+		AnimInstance->Montage_Play(Dictionary_AnimMtg.FindChecked(AnimMtg_Fire_Rifle), 1.0f);
+	}
+	else if (Checked_Shotgun)
+	{
+		AnimInstance->Montage_Play(Dictionary_AnimMtg.FindChecked(AnimMtg_Fire_Shotgun), 1.0f);
+	}
 }
 
 void APlayerCharacter::CeaseFire(const FInputActionValue& Value)

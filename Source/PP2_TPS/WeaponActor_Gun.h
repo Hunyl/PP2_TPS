@@ -95,6 +95,7 @@ public:
 private:
 
 	// Components
+	UPROPERTY()
 	USceneComponent* Muzzle;
 	
 	// Values
@@ -126,7 +127,11 @@ private:
 	bool CalcFireDelay_Auto(bool IsHolding);
 
 	// Methods
-	void CreateHitTrace(FVector& StartVector, FVector& TargetVector);
+	void CreateHitReg(FVector& StartVector, FVector& TargetVector);
+
+	void CreateVFX_BulletTracer(FVector& StartVector, FVector& TargetVector);
+
+	void CreateVFX_MuzzleFlash();
 
 	void CalcRPMToDelay();
 };

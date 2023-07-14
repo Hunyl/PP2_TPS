@@ -26,22 +26,14 @@ void AWeaponActor_Gun::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Mesh->IsValidLowLevel())
+	if (IsValid(Mesh) && IsValid(Muzzle))
 	{
 		Muzzle->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("MuzzleFlash"));
 	}
-	else
+
+	if (IsValid(Niagara))
 	{
-		Muzzle->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	}
-
-	Niagara->AttachToComponent(Muzzle, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
-	// Muzzle->AddLocalRotation(FRotator(90.0f, 0.0f, 0.0f));
-
-	if (VFX_BulletTracer->IsValidLowLevel())
-	{
-		Niagara->SetAsset(VFX_BulletTracer);
+		Niagara->AttachToComponent(Muzzle, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
 
 	CalcRPMToDelay();
@@ -134,35 +126,21 @@ void AWeaponActor_Gun::FireWeapon_Rifle()
 {
 	FHitResult Hit;
 
-	FVector StartVector = Muzzle->GetComponentLocation();
+	FVector StartVector = IsValid(Muzzle) ? Muzzle->GetComponentLocation() : FVector(0.0f, 0.0f, 0.0f);
 
 	FRotator Spread = FRotator(FMath::RandRange(-SpreadRadius, SpreadRadius), FMath::RandRange(-SpreadRadius, SpreadRadius), FMath::RandRange(-SpreadRadius, SpreadRadius));
 
-	FVector TargetVector = StartVector + Spread.RotateVector(Muzzle->GetForwardVector()) * MaxRange;
+	FVector MuzzleForwardVector = IsValid(Muzzle) ? Muzzle->GetForwardVector() : GetActorForwardVector();
 
-	CreateHitTrace(StartVector, TargetVector);
+	FVector TargetVector = StartVector + Spread.RotateVector(MuzzleForwardVector) * MaxRange;
 
-	UNiagaraComponent* BulletTracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		GetWorld(),
-		VFX_BulletTracer,
-		StartVector
-	);
+	CreateHitReg(StartVector, TargetVector);
 
-	BulletTracer->SetVectorParameter(TEXT("StartVector"), StartVector);
-	BulletTracer->SetVectorParameter(TEXT("TargetVector"), TargetVector);
+	CreateVFX_BulletTracer(StartVector, TargetVector);
 
-	UNiagaraComponent* Effect = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		VFX_MuzzleFlash,
-		Muzzle,
-		TEXT("MuzzleFlash"),
-		FVector(1),
-		FRotator(1),
-		EAttachLocation::SnapToTarget,
-		true,
-		true
-	);
+	CreateVFX_MuzzleFlash();
 
-	if (AnimSeq_Fire->IsValidLowLevel())
+	if (IsValid(AnimSeq_Fire))
 	{
 		Mesh->PlayAnimation(AnimSeq_Fire, false);
 	}
@@ -182,30 +160,14 @@ void AWeaponActor_Gun::FireWeapon_Shotgun()
 
 		FVector TargetVector = StartVector + Spread.RotateVector(Muzzle->GetForwardVector()) * MaxRange;
 
-		CreateHitTrace(StartVector, TargetVector);
+		CreateHitReg(StartVector, TargetVector);
 
-		UNiagaraComponent* BulletTracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			VFX_BulletTracer,
-			StartVector
-		);
-
-		BulletTracer->SetVectorParameter(TEXT("StartVector"), StartVector);
-		BulletTracer->SetVectorParameter(TEXT("TargetVector"), TargetVector);
+		CreateVFX_BulletTracer(StartVector, TargetVector);
 	}
 
-	UNiagaraComponent* Effect = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		VFX_MuzzleFlash,
-		Muzzle,
-		TEXT("MuzzleFlash"),
-		FVector(1),
-		FRotator(1),
-		EAttachLocation::SnapToTarget,
-		true,
-		true
-	);
+	CreateVFX_MuzzleFlash();
 
-	if (AnimSeq_Fire->IsValidLowLevel())
+	if (IsValid(AnimSeq_Fire))
 	{
 		Mesh->PlayAnimation(AnimSeq_Fire, false);
 	}
@@ -242,27 +204,75 @@ bool AWeaponActor_Gun::CalcFireDelay_Auto(bool IsHolding)
 	return false;
 }
 
-void AWeaponActor_Gun::CreateHitTrace(FVector& StartVector, FVector& TargetVector)
+void AWeaponActor_Gun::CreateHitReg(FVector& StartVector, FVector& TargetVector)
 {
 	FHitResult HitResult;
 	FCollisionQueryParams ColQueryParams;
 	ColQueryParams.AddIgnoredActor(this);
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartVector, TargetVector, ECollisionChannel::ECC_Visibility, ColQueryParams, FCollisionResponseParams()))
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, -2.0f, FColor::Red, HitResult.GetActor()->GetName());
-
-		TargetVector = HitResult.ImpactPoint;
-
-		if (HitResult.GetActor()->GetClass()->ImplementsInterface(UDamageableInterface::StaticClass()))
-		{
-			auto DamageableActor = Cast<IDamageableInterface>(HitResult.GetActor());
-			DamageableActor->TakeDamage(10.0f);
-		}
+		return;
 	}
 
-	
+	bool Result = World->LineTraceSingleByChannel(HitResult, StartVector, TargetVector, ECollisionChannel::ECC_Visibility, ColQueryParams, FCollisionResponseParams());
 
+	if (!Result)
+	{
+		return;
+	}
+
+	TargetVector = HitResult.ImpactPoint;
+
+	AActor* TargetActor = HitResult.GetActor();
+	if (!IsValid(TargetActor))
+	{
+		return;
+	}
+
+	if (TargetActor->GetClass()->ImplementsInterface(UDamageableInterface::StaticClass()))
+	{
+		auto DamageableActor = Cast<IDamageableInterface>(HitResult.GetActor());
+		DamageableActor->TakeDamage(10.0f);
+	}
+}
+
+void AWeaponActor_Gun::CreateVFX_BulletTracer(FVector& StartVector, FVector& TargetVector)
+{
+	UWorld* World = GetWorld();
+	if (!IsValid(World) || !IsValid(VFX_BulletTracer))
+	{
+		return;
+	}
+
+	UNiagaraComponent* BulletTracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		VFX_BulletTracer,
+		StartVector
+	);
+
+	BulletTracer->SetVectorParameter(TEXT("StartVector"), StartVector);
+	BulletTracer->SetVectorParameter(TEXT("TargetVector"), TargetVector);
+}
+
+void AWeaponActor_Gun::CreateVFX_MuzzleFlash()
+{
+	if (!IsValid(Muzzle) || !IsValid(VFX_MuzzleFlash))
+	{
+		return;
+	}
+
+	UNiagaraComponent* MuzzleFlash = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		VFX_MuzzleFlash,
+		Muzzle,
+		TEXT("MuzzleFlash"),
+		FVector(1),
+		FRotator(1),
+		EAttachLocation::SnapToTarget,
+		true,
+		true
+	);
 }
 
 void AWeaponActor_Gun::CalcRPMToDelay()
