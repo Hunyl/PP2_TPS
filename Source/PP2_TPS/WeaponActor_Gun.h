@@ -58,29 +58,32 @@ public:
 	EFireModeType FireModeType;
 
 	// Components
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "VFX")
 	UNiagaraComponent* Niagara;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "VFX")
 	UNiagaraSystem* VFX_BulletTracer;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "VFX")
 	UNiagaraSystem* VFX_MuzzleFlash;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimSequence* AnimSeq_Fire;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Misc")
 	TSubclassOf<AActor> Actor_Case;
 
+	UPROPERTY(EditAnywhere, Category = "Misc")
+	UMaterialInterface* Material_BulletHole;
+
 	// Values: Weapon Stats
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	float MaxRange;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	float SpreadRadius;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
 	int RoundPerMinute;
 
 public:

@@ -8,6 +8,8 @@
 #include "../../../../Engine/Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 #include "../../../../Engine/Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/DecalComponent.h"
 
 #include "EnemyCharacter.h"
 
@@ -236,6 +238,31 @@ void AWeaponActor_Gun::CreateHitReg(FVector& StartVector, FVector& TargetVector)
 		auto DamageableActor = Cast<IDamageableInterface>(HitResult.GetActor());
 		DamageableActor->TakeDamage(10.0f);
 	}
+
+	if (!IsValid(Material_BulletHole))
+	{
+		return;
+	}
+
+	UPrimitiveComponent* TargetComp = HitResult.GetComponent();
+	if (!IsValid(TargetComp))
+	{
+		return;
+	}
+
+	UDecalComponent* BulletHole = UGameplayStatics::SpawnDecalAttached(
+		Material_BulletHole,
+		FVector(3.5f),
+		TargetComp,
+		NAME_None,
+		HitResult.Location,
+		FRotationMatrix::MakeFromX(HitResult.Normal).Rotator(),
+		EAttachLocation::KeepWorldPosition,
+		5.0f
+	);
+
+	BulletHole->SetFadeScreenSize(0.0f);
+	
 }
 
 void AWeaponActor_Gun::CreateVFX_BulletTracer(FVector& StartVector, FVector& TargetVector)

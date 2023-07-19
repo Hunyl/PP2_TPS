@@ -11,6 +11,7 @@
  */
 
 class UPawnSensingComponent;
+class UBlackboardComponent;
 
 UCLASS()
 class PP2_TPS_API AEnemyCharacter_RangedTypeA : public AEnemyCharacter
@@ -33,5 +34,20 @@ public:
 	// AI Components
 	UPROPERTY(EditAnywhere, Category = "AI")
 	UPawnSensingComponent* PawnSensing;
+
+public:
+	// BlackBoard Keys
+	static const FName PlayerVisible;
+
+public:
+	// Unreal Functions
+	UFUNCTION()
+	void OnPlayerVisible(APawn* Player);
+
+	UFUNCTION()
+	void OnPlayerInvisible();
+
+	//Methods
+	UBlackboardComponent* GetBlackBoard();
 
 };
