@@ -10,7 +10,7 @@
  * 
  */
 
-class UPawnSensingComponent;
+class UAIPerceptionComponent;
 class UBlackboardComponent;
 
 UCLASS()
@@ -29,25 +29,5 @@ protected:
 public:
 	
 	virtual void Tick(float DeltaTime) override;
-
-public:
-	// AI Components
-	UPROPERTY(EditAnywhere, Category = "AI")
-	UPawnSensingComponent* PawnSensing;
-
-public:
-	// BlackBoard Keys
-	static const FName PlayerVisible;
-
-public:
-	// Unreal Functions
-	UFUNCTION()
-	void OnPlayerVisible(APawn* Player);
-
-	UFUNCTION()
-	void OnPlayerInvisible();
-
-	//Methods
-	UBlackboardComponent* GetBlackBoard();
 
 };

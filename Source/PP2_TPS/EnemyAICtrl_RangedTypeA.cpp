@@ -6,6 +6,14 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+
+#include "Perception/AIPerceptionTypes.h"
+
+#include "PlayerCharacter.h"
+
+const FName AEnemyAICtrl_RangedTypeA::PlayerVisible(TEXT("IsPlayerVisible"));
 
 AEnemyAICtrl_RangedTypeA::AEnemyAICtrl_RangedTypeA()
 {
@@ -20,6 +28,9 @@ AEnemyAICtrl_RangedTypeA::AEnemyAICtrl_RangedTypeA()
 	{
 		Asset_BlackBoard = Object_BlackBoard.Object;
 	}
+
+	InitializePerception();
+
 }
 
 void AEnemyAICtrl_RangedTypeA::OnPossess(APawn* InPawn)
@@ -43,4 +54,38 @@ void AEnemyAICtrl_RangedTypeA::OnPossess(APawn* InPawn)
 void AEnemyAICtrl_RangedTypeA::OnUnPossess()
 {
 	Super::OnUnPossess();
+}
+
+void AEnemyAICtrl_RangedTypeA::OnPlayerVisible(AActor* Actor, FAIStimulus Stimulus)
+{
+	if (APlayerCharacter* Player = Cast<APlayerCharacter>(Actor))
+	{
+		Blackboard->SetValueAsBool(PlayerVisible, Stimulus.WasSuccessfullySensed());
+	}
+}
+
+void AEnemyAICtrl_RangedTypeA::InitializePerception()
+{
+	AIPerception = CreateOptionalDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
+	SetPerceptionComponent(*AIPerception);
+
+	AIConfig_Sight = CreateOptionalDefaultSubobject<UAISenseConfig_Sight>(TEXT("AIConfig_Sight"));
+	AIConfig_Sight->SightRadius = 250.0f;
+	AIConfig_Sight->LoseSightRadius = AIConfig_Sight->SightRadius + 50.0f;
+	AIConfig_Sight->PeripheralVisionAngleDegrees = 75.0f;
+
+	FAISenseAffiliationFilter SenseFilter;
+	SenseFilter.bDetectEnemies = true;
+	SenseFilter.bDetectFriendlies = true;
+	SenseFilter.bDetectNeutrals = true;
+	AIConfig_Sight->DetectionByAffiliation = SenseFilter;
+
+	if (!IsValid(GetPerceptionComponent()))
+	{
+		return;
+	}
+
+	GetPerceptionComponent()->SetDominantSense(AIConfig_Sight->GetSenseImplementation());
+	GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyAICtrl_RangedTypeA::OnPlayerVisible);
+	GetPerceptionComponent()->ConfigureSense(*AIConfig_Sight);
 }

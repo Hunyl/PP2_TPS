@@ -13,6 +13,10 @@
 class UBehaviorTree;
 class UBlackboardData;
 class UBlackboardComponent;
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
+
+struct FAIStimulus;
 
 UCLASS()
 class PP2_TPS_API AEnemyAICtrl_RangedTypeA : public AAIController
@@ -30,7 +34,7 @@ public:
 	virtual void OnUnPossess() override;
 
 public:
-
+	// AI Components
 	UPROPERTY()
 	UBehaviorTree* Asset_BehaviorTree;
 
@@ -39,4 +43,21 @@ public:
 
 	UPROPERTY()
 	UBlackboardComponent* BlackBoardComp;
+
+	UPROPERTY()
+	UAIPerceptionComponent* AIPerception;
+
+	UPROPERTY()
+	UAISenseConfig_Sight* AIConfig_Sight;
+
+	// Black Board Keys
+	static const FName PlayerVisible;
+
+public:
+	// Unreal Functions
+	UFUNCTION()
+	void OnPlayerVisible(AActor* Actor, FAIStimulus Stimulus);
+
+	// Methods
+	void InitializePerception();
 };
