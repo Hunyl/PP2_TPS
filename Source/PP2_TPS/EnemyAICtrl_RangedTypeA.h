@@ -9,7 +9,7 @@
 /**
  * 
  */
-
+class AEnemyCharacter;
 class UBehaviorTree;
 class UBlackboardData;
 class UBlackboardComponent;
@@ -50,8 +50,15 @@ public:
 	UPROPERTY()
 	UAISenseConfig_Sight* AIConfig_Sight;
 
+	// AI Owner
+	TWeakObjectPtr<AEnemyCharacter> OwnerEnemy;
+
 	// Black Board Keys
+	static const FName PlayerCharacter;
+
 	static const FName PlayerVisible;
+
+	static const FName AttackAvailable;
 
 public:
 	// Unreal Functions

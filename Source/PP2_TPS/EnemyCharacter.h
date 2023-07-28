@@ -36,6 +36,9 @@ public:
 
 protected:
 	
+	UPROPERTY(EditAnywhere, Category = "Basic Status")
+	float AttackRange;
+
 	float HitPoint;
 
 public:
@@ -45,5 +48,7 @@ public:
 	virtual void OnDefeated();
 
 	virtual void OnRespawned();
+
+	float GetAttackRange();
 
 };

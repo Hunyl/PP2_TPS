@@ -56,3 +56,8 @@ void AEnemyCharacter::OnRespawned()
 	UE_LOG(LogTemp, Log, TEXT("Respawned or Reactivated: %s"), *FString(this->GetName()));
 }
 
+float AEnemyCharacter::GetAttackRange()
+{
+	return AttackRange;
+}
+

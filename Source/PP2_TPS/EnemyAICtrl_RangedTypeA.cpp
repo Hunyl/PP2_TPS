@@ -12,8 +12,11 @@
 #include "Perception/AIPerceptionTypes.h"
 
 #include "PlayerCharacter.h"
+#include "EnemyCharacter.h"
 
+const FName AEnemyAICtrl_RangedTypeA::PlayerCharacter(TEXT("PlayerCharacter"));
 const FName AEnemyAICtrl_RangedTypeA::PlayerVisible(TEXT("IsPlayerVisible"));
+const FName AEnemyAICtrl_RangedTypeA::AttackAvailable(TEXT("IsAttackAvailable"));
 
 AEnemyAICtrl_RangedTypeA::AEnemyAICtrl_RangedTypeA()
 {
@@ -37,6 +40,8 @@ void AEnemyAICtrl_RangedTypeA::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
+	OwnerEnemy = Cast<AEnemyCharacter>(InPawn);
+
 	if (!IsValid(Asset_BehaviorTree) || !IsValid(Asset_BlackBoard))
 	{
 		return;
@@ -58,10 +63,36 @@ void AEnemyAICtrl_RangedTypeA::OnUnPossess()
 
 void AEnemyAICtrl_RangedTypeA::OnPlayerVisible(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (APlayerCharacter* Player = Cast<APlayerCharacter>(Actor))
+	APlayerCharacter* Player = Cast<APlayerCharacter>(Actor);
+	if (!IsValid(Player))
 	{
-		Blackboard->SetValueAsBool(PlayerVisible, Stimulus.WasSuccessfullySensed());
+		return;
 	}
+
+	Blackboard->SetValueAsObject(PlayerCharacter, Player);
+
+	Blackboard->SetValueAsBool(PlayerVisible, Stimulus.WasSuccessfullySensed());
+
+	if (!Stimulus.WasSuccessfullySensed())
+	{
+		return;
+	}
+
+	if (!OwnerEnemy.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Unable to Get Owner"));
+		return;
+	}
+
+	FVector OwnerLocation = OwnerEnemy->GetActorLocation();
+	
+	FVector PlayerLocation = Player->GetActorLocation();
+
+	float Distance = FVector::Distance(OwnerLocation, PlayerLocation);
+
+	bool IsInAttackRange = Distance <= OwnerEnemy->GetAttackRange() ? true : false;
+
+	Blackboard->SetValueAsBool(AttackAvailable, IsInAttackRange);
 }
 
 void AEnemyAICtrl_RangedTypeA::InitializePerception()
@@ -70,8 +101,8 @@ void AEnemyAICtrl_RangedTypeA::InitializePerception()
 	SetPerceptionComponent(*AIPerception);
 
 	AIConfig_Sight = CreateOptionalDefaultSubobject<UAISenseConfig_Sight>(TEXT("AIConfig_Sight"));
-	AIConfig_Sight->SightRadius = 250.0f;
-	AIConfig_Sight->LoseSightRadius = AIConfig_Sight->SightRadius + 50.0f;
+	AIConfig_Sight->SightRadius = 1000.0f;
+	AIConfig_Sight->LoseSightRadius = AIConfig_Sight->SightRadius + 100.0f;
 	AIConfig_Sight->PeripheralVisionAngleDegrees = 75.0f;
 
 	FAISenseAffiliationFilter SenseFilter;
